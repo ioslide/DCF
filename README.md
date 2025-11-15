@@ -47,7 +47,7 @@ For the Test-Time Adaptation (TTA) benchmarks, we utilize pre-trained models fro
 
 ## ▶️ Run Experiments
 
-We provide Python scripts and Bash scripts to run the experiments no a single **A100** GPU.
+We provide Python scripts and Bash scripts to run the experiments on a single **A100** GPU.
 
 **Using Python Scripts:**
 
