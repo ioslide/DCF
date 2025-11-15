@@ -1,0 +1,18 @@
+2025-11-15 15:18:01.066 | INFO | CS.py | __main__:CS.main:120 - Loaded configuration file: 
+	adapter: configs/adapter/imagenet/DeYO.yaml
+	dataset: configs/dataset/imagenet.yaml
+	order: configs/order/imagenet/0.yaml
+	model:  -  - 1409565
+2025-11-15 15:18:01.066 | INFO | CS.py | __main__:CS.main:127 - METHOD config:
+AUG_TYPE: patch
+COLUMN_START: 56
+D_MARGIN: 0.05
+MARGIN: 0.5
+MARGIN_E0: 0.4
+OCCLUSION_SIZE: 112
+PATCH_LEN: 4
+PLPD: 0.2
+REWEIGHT_ENT: True
+REWEIGHT_PLPD: True
+ROW_START: 56 -  - 1409565
+2025-11-15 15:18:02.628 | INFO | CS.py | __main__:CS.eval:39 - ==>> corruption_type:  motion_blur -  - 1409565
