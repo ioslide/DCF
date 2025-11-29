@@ -58,7 +58,6 @@ def eval(cfg):
             new_results['Avg'] += acc * 100
             log.info(f"[{corruption_type}{severity}]: Acc {acc:.2%} || Error {err:.2%}")
 
-        log.info(f"all_time: {all_time/len(cfg.CORRUPTION.TYPE)}")
         new_results['Avg'] = new_results['Avg'] / len(cfg.CORRUPTION.TYPE)
         log.info(f"[Avg {severity}]: Acc {new_results['Avg']:.2f} || Error {100-new_results['Avg']:.2f}")
         save_df(new_results,f'./results/{cfg.CORRUPTION.DATASET}_{cfg.CORRUPTION.ORDER_NUM}.csv')
