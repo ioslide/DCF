@@ -1,5 +1,4 @@
 from .datasets.common_corruption import CorruptionDataset
-from .datasets.waterbirds import WaterbirdsDataset
 from .data_loading import ImageList,get_augmentation,complete_data_dir_path
 import torch
 from .ttasampler import build_sampler
@@ -100,18 +99,7 @@ class CamelyonDataset(Dataset):
         for idx in split_idx:
             tmp.append(self.input_array[idx]) 
         
-        self.input_array = tmp #self.input_array[split_idx]
-        '''
-        self.metadata_array = torch.stack(
-            (torch.LongTensor(centers),
-             torch.LongTensor(self.metadata_df['slide'].values),
-             self.y_array),
-            dim=1)
-        self.metadata_fields = ['hospital', 'slide', 'y']
-        self._eval_grouper = CombinatorialGrouper(
-            dataset=self,
-            groupby_fields=['slide'])
-        '''
+        self.input_array = tmp
         self.transform = transform
 
         print('Total # images:{}, labels:{}'.format(len(self.input_array),len(self.y_array)))
@@ -187,33 +175,12 @@ class DataLoaderX(DataLoader):
     def __iter__(self):
         return BackgroundGenerator(super().__iter__())
 
-def build_domainnet126(cfg, domain_name):
-    # domain = cfg.MODEL.CKPT_PATH.replace('.pth', '').split(os.sep)[-1].split('_')[1]
-    data_list = [f"/gemini/code/xhy/CTTA/core/data/datasets/domainnet126_lists/{domain_name}_list.txt"]
-    transform = get_augmentation(aug_type="test", res_size=(256, 256), crop_size=224)
-    data_dir = f"/gemini/data-1/datasets/DomainNet-126"
-    test_dataset = ImageList(
-        image_root=data_dir,
-        label_files=data_list,
-        transform=transform
-    )
-    test_loader = DataLoaderX(
-        test_dataset, 
-        batch_size=cfg.TEST.BATCH_SIZE,
-        shuffle=False, 
-        num_workers=2,
-        pin_memory=False,
-    )
-    return test_loader
-
 def build_imagenet_d(cfg):
     transform = get_augmentation(aug_type="test", res_size=(256, 256), crop_size=224)
     log.info(f"==>> transform:  {transform}")
     data_dir = complete_data_dir_path(root=cfg.DATA_DIR, dataset_name=cfg.CORRUPTION.DATASET)
     log.info(f"==>> data_dir:  {data_dir}")
     test_dataset = ImageNetDLoader(test_base_dir=data_dir, transform=transform)
-    # test_dataset = torchvision.datasets.ImageFolder(root=data_dir, transform=transform)
-    # random.shuffle(test_dataset.samples)
     test_loader = DataLoaderX(
         test_dataset, 
         batch_size=cfg.TEST.BATCH_SIZE,
@@ -229,7 +196,6 @@ def build_imagenet_k_r_v2(cfg):
     data_dir = complete_data_dir_path(root=cfg.DATA_DIR, dataset_name=cfg.CORRUPTION.DATASET)
     log.info(f"==>> data_dir:  {data_dir}")
     test_dataset = torchvision.datasets.ImageFolder(root=data_dir, transform=transform)
-    # random.shuffle(test_dataset.samples)
     test_loader = DataLoaderX(
         test_dataset, 
         batch_size=cfg.TEST.BATCH_SIZE,
@@ -256,11 +222,6 @@ def build_loader(cfg):
         raise NotImplementedError(f"Not Implement for dataset: {cfg.CORRUPTION.DATASET}")
 
     if cfg.LOADER.SAMPLER.TYPE == "temporal":
-
-        # try:
-        #     log.info(f"Load temporal dataset from /gemini/data-1/datasets/{dataset_name}/temporal_{cfg.LOADER.SAMPLER.GAMMA}.pth")
-        #     ds = torch.load(f"/gemini/data-1/datasets/{dataset_name}/temporal_{cfg.LOADER.SAMPLER.GAMMA}.pth")
-        # except Exception as e:
         file = f"/gemini/data-1/datasets/{dataset_name}/temporal_{cfg.LOADER.SAMPLER.GAMMA}.pth"
         if os.path.exists(file):
             log.info(f"Load temporal dataset from {file}")
@@ -272,7 +233,6 @@ def build_loader(cfg):
         loader = DataLoader(ds, cfg.TEST.BATCH_SIZE, sampler=sampler, num_workers=2, pin_memory=False)
 
     elif cfg.LOADER.SAMPLER.TYPE == "mix":
-
         file = f"/gemini/data-1/datasets/{dataset_name}/mix.pth"
         if os.path.exists(file):
             log.info(f"Load mixed dataset from /gemini/data-1/datasets/{dataset_name}/mix.pth")
@@ -280,11 +240,7 @@ def build_loader(cfg):
         else:
             ds = dataset_class(cfg)
             torch.save(ds, f"/gemini/data-1/datasets/{dataset_name}/mix.pth")
-        # sampler = build_sampler(cfg, ds.data_source)
-        # loader = DataLoader(ds, cfg.TEST.BATCH_SIZE, sampler=sampler, num_workers=2, pin_memory=True)
         loader = DataLoader(ds, cfg.TEST.BATCH_SIZE, num_workers=0, pin_memory=False, shuffle=True)
-    else:
-        loader = DataLoader(ds, cfg.TEST.BATCH_SIZE, num_workers=0, pin_memory=False)
 
     result_processor = AvgResultProcessor(ds.domain_id_to_name)
 
@@ -299,31 +255,3 @@ def ckpt_path_to_domain_seq(ckpt_path: str):
                "sketch": ["painting", "clipart", "real"],
                }
     return mapping[domain]
-
-def build_waterbirds(cfg):
-    def custom_collate_fn(batch):
-        imgs, ys, attrs = zip(*batch)
-        
-        imgs = torch.stack(imgs, dim=0)
-        ys = torch.tensor(ys)
-        keys = list(attrs[0].keys())
-        attrs = {key: [attr[key] for attr in attrs] for key in keys}
-        return imgs, ys, attrs
-            
-    transform=transforms.Compose(
-        [transforms.ToTensor(),
-            transforms.Resize((224, 224)),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
-    dataset_file = f"/gemini/data-1/datasets/waterbirds/waterbirds_dataset.h5py"
-    test_dataset = WaterbirdsDataset(dataset_file, 'test', transform)
-    loader = DataLoaderX(
-        test_dataset, 
-        batch_size=cfg.TEST.BATCH_SIZE,
-        shuffle=False, 
-        num_workers=0,
-        pin_memory=False, 
-        collate_fn=custom_collate_fn
-    )
-    return loader
