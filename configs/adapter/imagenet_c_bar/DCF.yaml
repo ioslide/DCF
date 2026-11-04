@@ -1,0 +1,40 @@
+OPTIM:
+  METHOD: "SGD"
+  STEPS: 1
+  BETA: 0.9
+  LR: 0.00025
+  WD: 0.
+  MOMENTUM: 0.9
+
+ADAPTER:
+  NAME: DCF
+  DCF:
+    PCS_T: 0.2
+    PCS_W: 1.5
+    TRUST_LOSS: "slr"
+    MU: 0.99
+    MU_TEMP: 0.0001
+    CLR_GATE_NORMALIZE: True
+    SIGMA_F: 0.5
+    LAMBDA: 0.2
+    FREQ_RANGE: [1, 224]
+    MIN_STR: 0.0
+    PROBE_DRAWS: 1
+    RGR_MODE: "aligned"
+    RGR_WEIGHT: 1.0
+    OT_REG: 0.5
+    SINKHORN_ITERS: 3
+    PRIOR_RHO: 0.01
+    PRIOR_EMA: 0.99
+    CLR_MODE: "paper"
+    GRANULARITY: ""
+    CLR_EPS: 1e-6
+    GRAD_CLIP: 0.0
+    CLR_AFTER_STEP: False
+    CLEAR_ALL_GRADS: True
+    OPTIMIZER_SCOPE_ONLY: True
+    CURV_CHUNK_SIZE: 2
+    CURV_SAMPLES: 64
+    CURV_EST: "gradsq"
+    SOFT_AUG: False
+    OUTPUT_WEAK_WEIGHT: 0.0
